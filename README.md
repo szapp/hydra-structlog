@@ -1,5 +1,10 @@
 # Hydra-Structlog
 
+[![CI](https://github.com/szapp/hydra-structlog/actions/workflows/ci.yml/badge.svg)](https://github.com/szapp/hydra-structlog/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/hydra-structlog)](https://pypi.python.org/pypi/hydra-structlog)
+[![Python Versions](https://img.shields.io/pypi/pyversions/hydra-structlog)](https://github.com/szapp/hydra-structlog)
+[![Support on Ko-fi](https://img.shields.io/badge/ko--fi-support-ff586e?logo=kofi&logoColor=white)](https://ko-fi.com/szapp)
+
 An opinionated hydra plugin to configure logging with structlog.
 
 ## Usage
