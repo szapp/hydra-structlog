@@ -69,6 +69,8 @@ jobs:
       - name: Retrieve supported Python versions
         uses: hynek/build-and-inspect-python-package@v2
         id: baipp
+        with:
+          skip-wheel: true
 
   test:
     name: Test Python versions
