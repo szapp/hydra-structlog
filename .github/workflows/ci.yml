@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+env:
+  UV_LOCKED: true
+
+jobs:
+  ci:
+    name: Lint and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install the project
+        run: uv sync
+
+      - name: Lint
+        run: uv run ruff check --output-format=github .
+
+      - name: Format
+        run: uv run ruff format --diff
+
+      - name: Type checks
+        run: uv run ty check src
+
+      - name: Check docstrings in tests
+        run: uv run interrogate tests
+
+      - name: Test
+        run: uv run pytest --junitxml=junit/test-results.xml
+
+      - name: Upload pytest test results
+        uses: actions/upload-artifact@v7
+        with:
+          name: pytest-results
+          path: junit/test-results.xml
+          retention-days: 7
+        if: ${{ always() }}
+
+  fetch-versions:
+    runs-on: ubuntu-latest
+    outputs:
+      python-versions: ${{ steps.baipp.outputs.supported_python_classifiers_json_array }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Retrieve supported Python versions
+        uses: hynek/build-and-inspect-python-package@v2
+        id: baipp
+
+  test:
+    name: Test Python versions
+    runs-on: ubuntu-latest
+    needs: fetch-versions
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ fromJson(needs.fetch-versions.outputs.python-versions) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install the project
+        run: uv sync --python ${{ matrix.python-version }}
+
+      - name: Test
+        run: uv run --python ${{ matrix.python-version }} pytest --no-cov

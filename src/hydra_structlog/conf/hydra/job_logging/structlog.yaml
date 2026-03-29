@@ -1,0 +1,102 @@
+# @package hydra.job_logging
+# python logging configuration for tasks
+version: 1
+formatters:
+  console:
+    "()": hydra_structlog.formatters.build_processor_formatter
+    foreign_pre_chain: ${hydra.job_logging.formatters.json.foreign_pre_chain}
+    processors:
+      _target_: hydra_structlog.processors.named_processor_chain
+      remove_processors_meta:
+        _target_: structlog.stdlib.ProcessorFormatter.remove_processors_meta
+        _partial_: true
+      time_stamper:
+        _target_: structlog.processors.TimeStamper
+        fmt: "%Y-%m-%d %H:%M:%S"
+        utc: false
+      console_renderer:
+        _target_: structlog.dev.ConsoleRenderer
+  json:
+    "()": hydra_structlog.formatters.build_processor_formatter
+    foreign_pre_chain:
+      _target_: hydra_structlog.processors.named_processor_chain
+      merge_contextvars:
+        _target_: structlog.contextvars.merge_contextvars
+        _partial_: true
+      add_logger_name:
+        _target_: structlog.stdlib.add_logger_name
+        _partial_: true
+      add_log_level:
+        _target_: structlog.stdlib.add_log_level
+        _partial_: true
+      positional_arguments_formatter:
+        _target_: structlog.stdlib.PositionalArgumentsFormatter
+      extra_adder:
+        _target_: structlog.stdlib.ExtraAdder
+      stack_info_renderer:
+        _target_: structlog.processors.StackInfoRenderer
+    processors:
+      _target_: hydra_structlog.processors.named_processor_chain
+      remove_processors_meta:
+        _target_: structlog.stdlib.ProcessorFormatter.remove_processors_meta
+        _partial_: true
+      static_field_adder:
+        _target_: hydra_structlog.processors.StaticFieldAdder
+        service: ${oc.env:SERVICE,null}
+        version: ${oc.env:VERSION,null}
+        env: ${oc.env:ENV,dev}
+        task: ${hydra.job.name}
+      callsite_parameter_adder:
+        _target_: structlog.processors.CallsiteParameterAdder
+        parameters:
+          - _target_: structlog.processors.CallsiteParameter
+            _args_:
+              - lineno
+          - _target_: structlog.processors.CallsiteParameter
+            _args_:
+              - func_name
+        additional_ignores:
+          - warnings
+          - hydra_structlog
+      time_stamper:
+        _target_: structlog.processors.TimeStamper
+        fmt: iso
+      field_renamer:
+        _target_: hydra_structlog.processors.FieldRenamer
+        level: status
+        event: message
+      format_exc_info:
+        _target_: structlog.processors.format_exc_info
+        _partial_: true
+      json_renderer:
+        _target_: structlog.processors.JSONRenderer
+        sort_keys: true
+handlers:
+  console:
+    class: hydra_structlog.handlers.TqdmStreamHandler
+    formatter: console
+    stream: ext://sys.stdout
+  file:
+    # Run-local copy of the log
+    class: logging.FileHandler
+    formatter: json
+    filename: ${hydra.runtime.output_dir}/${hydra.job.name}.log
+    encoding: utf-8
+  json:
+    # Global structured log for monitoring or similar
+    class: logging.handlers.RotatingFileHandler
+    formatter: json
+    level: INFO
+    # Fixed location for all runs
+    filename: ${hydra.runtime.cwd}/structured.log
+    encoding: utf-8
+    # 1024**2 = 1 MB
+    maxBytes: 1048576
+    # Important for safe rotation (structured.log.1)
+    backupCount: 1
+
+root:
+  level: INFO
+  handlers: [console, file, json]
+
+disable_existing_loggers: false

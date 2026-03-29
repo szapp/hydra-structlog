@@ -1,0 +1,27 @@
+defaults:
+  - override hydra/job_logging: structlog
+
+hydra:
+  job:
+    env_set:
+      ENV: ${oc.env:ENV,dev}
+      SERVICE: ${oc.env:SERVICE,test-service}
+      VERSION: ${oc.env:VERSION,0.1.0}
+
+  # Example customizations (see README.md)
+  job_logging:
+    formatters:
+      json:
+        # Modify the processor chain
+        foreign_pre_chain:
+          # Remove the add-log-level processor
+          add_log_level: null
+          # Append a new processor
+          arbitrary_name:
+            # Follow hydra's instantiate syntax
+            _target_: structlog.stdlib.add_log_level_number
+            _partial_: true
+    handlers:
+      # Change the storage location
+      json:
+        filename: ${hydra.runtime.cwd}/structured.log
