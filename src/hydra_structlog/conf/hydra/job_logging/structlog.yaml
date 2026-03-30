@@ -40,12 +40,13 @@ formatters:
       remove_processors_meta:
         _target_: structlog.stdlib.ProcessorFormatter.remove_processors_meta
         _partial_: true
-      static_field_adder:
-        _target_: hydra_structlog.processors.StaticFieldAdder
-        service: ${oc.env:SERVICE,null}
-        version: ${oc.env:VERSION,null}
-        env: ${oc.env:ENV,dev}
+      static_key_adder:
+        _target_: hydra_structlog.processors.StaticKeyAdder
+        service: ${oc.select:hydra.job.env_set.SERVICE,${oc.env:SERVICE,null}}
+        version: ${oc.select:hydra.job.env_set.VERSION,${oc.env:VERSION,null}}
+        env: ${oc.select:hydra.job.env_set.ENV,${oc.env:ENV,dev}}
         task: ${hydra.job.name}
+        runtime_version: ${python_version:micro}
       callsite_parameter_adder:
         _target_: structlog.processors.CallsiteParameterAdder
         parameters:
@@ -61,16 +62,25 @@ formatters:
       time_stamper:
         _target_: structlog.processors.TimeStamper
         fmt: iso
-      field_renamer:
-        _target_: hydra_structlog.processors.FieldRenamer
+      key_renamer:
+        _target_: hydra_structlog.processors.KeyRenamer
         level: status
         event: message
       format_exc_info:
         _target_: structlog.processors.format_exc_info
         _partial_: true
+      key_sorter:
+        _target_: hydra_structlog.processors.KeySorter
+        key_order:
+          - timestamp
+          - status
+          - message
+          - logger
+          - func_name
+          - lineno
+        drop_missing: true
       json_renderer:
         _target_: structlog.processors.JSONRenderer
-        sort_keys: true
 handlers:
   console:
     class: hydra_structlog.handlers.TqdmStreamHandler
