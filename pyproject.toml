@@ -1,6 +1,6 @@
 [project]
 name = "hydra-structlog"
-version = "0.2.0"
+version = "0.2.1"
 description = "An opinionated hydra plugin to configure logging with structlog"
 readme = "README.md"
 authors = [
