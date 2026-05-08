@@ -1,16 +1,16 @@
 import logging
 from typing import Any, TextIO
 
-try:
+try:  # pragma: no cover
     from tqdm.std import tqdm as std_tqdm  # type: ignore[ty:unresolved-import]
 
     TqdmClass = type[std_tqdm]
-except ImportError:
+except ImportError:  # pragma: no cover
     std_tqdm: Any = None
     TqdmClass = None
 
 
-class TqdmStreamHandler(logging.StreamHandler):
+class TqdmStreamHandler(logging.StreamHandler):  # pragma: no cover
     """Handler inheriting from StreamHandler to route logging stream through tqdm."""
 
     def __init__(

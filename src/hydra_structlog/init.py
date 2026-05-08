@@ -26,7 +26,7 @@ def warning_logger(
     frame = sys._getframe(2)
     module = frame.f_globals.get("__name__")
     logger = logging.getLogger(module)
-    logger.warning("%s: %s", category.__name__, f"{message} (line {lineno})")
+    logger.warning("%s: %s (line %d)", category.__name__, message, lineno)
 
 
 def exception_logger(
@@ -56,7 +56,7 @@ def exception_logger(
             filename = frame.f_code.co_filename.replace(os.sep, "/")
             if filename.endswith(skip_files) and tb:
                 exc_traceback = tb
-    except Exception:
+    except Exception:  # pragma: no cover
         pass
 
     message = getattr(exc_value, "message", str(exc_value))
@@ -64,7 +64,9 @@ def exception_logger(
     logger.critical(message, exc_info=exc_info)
 
 
-def init_plugin(foreign_pre_chain: Sequence[structlog.typing.Processor]) -> None:
+def init_plugin(
+    foreign_pre_chain: Sequence[structlog.typing.Processor],
+) -> None:  # pragma: no cover
     """Configure structlog and warning and exception hooks."""
     global _excepthook, _showwarning, _configured_once
 
