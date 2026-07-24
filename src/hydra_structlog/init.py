@@ -14,6 +14,21 @@ _excepthook = None
 _configured_once = False
 
 
+def _module_from_filename(filename: str) -> str | None:
+    """Obtain the module name from filename through call stack."""
+    frame = sys._getframe(1)
+    while frame is not None:
+        if frame.f_code.co_filename == filename:
+            return frame.f_globals.get("__name__")
+        frame = frame.f_back
+
+    # Fallback: Module from sys.modules
+    for name, mod in list(sys.modules.items()):
+        if getattr(mod, "__file__", None) == filename:
+            return name
+    return None
+
+
 def warning_logger(
     message: Warning | str,
     category: type[Warning],
@@ -23,10 +38,20 @@ def warning_logger(
     line: str | None = None,
 ) -> None:
     """Emit Python-native warnings as logging warnings."""
-    frame = sys._getframe(2)
-    module = frame.f_globals.get("__name__")
+    module = _module_from_filename(filename)
     logger = logging.getLogger(module)
-    logger.warning("%s: %s (line %d)", category.__name__, message, lineno)
+    if not logger.isEnabledFor(logging.WARNING):
+        return  # pragma: no cover
+    record = logger.makeRecord(
+        logger.name,
+        logging.WARNING,
+        filename,
+        lineno,
+        "%s: %s (line %d)",
+        (category.__name__, message, lineno),
+        None,
+    )
+    logger.handle(record)
 
 
 def exception_logger(
@@ -56,7 +81,7 @@ def exception_logger(
             filename = frame.f_code.co_filename.replace(os.sep, "/")
             if filename.endswith(skip_files) and tb:
                 exc_traceback = tb
-    except Exception:  # pragma: no cover
+    except Exception:  # pragma: no cover  # noqa: BLE001, S110
         pass
 
     message = getattr(exc_value, "message", str(exc_value))

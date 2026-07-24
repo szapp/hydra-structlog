@@ -30,5 +30,5 @@ class TqdmStreamHandler(logging.StreamHandler):  # pragma: no cover
                 self.flush()
             except (KeyboardInterrupt, RecursionError, SystemExit):
                 raise
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self.handleError(record)

@@ -16,6 +16,37 @@ def test_warning_logger_logs_warning(caplog: pytest.LogCaptureFixture):
     ]
 
 
+@pytest.mark.parametrize(
+    ["filename", "logger_name"],
+    [
+        pytest.param("file.py", "test_module", id="from_call_stack"),
+        pytest.param(logging.__file__, "logging", id="from_sys_modules"),
+    ],
+)
+def test_warning_logger_finds_module(
+    caplog: pytest.LogCaptureFixture, filename: str, logger_name: str
+):
+    """Warnings are logged with the logger of origin module."""
+
+    # Raise a warning a few frames deep
+    def deep_raise():
+        warning_logger("TestWarning", UserWarning, filename, 42)
+
+    # Construct a frame
+    code = compile(
+        "deep_raise()",
+        filename="file.py",
+        mode="exec",
+    )
+
+    with caplog.at_level(logging.WARNING, "test_init"):
+        exec(code, {"deep_raise": deep_raise, "__name__": "test_module"})  # noqa: S102
+
+    assert caplog.record_tuples == [
+        (logger_name, logging.WARNING, "UserWarning: TestWarning (line 42)")
+    ]
+
+
 def test_exception_logger_logs_exception(caplog: pytest.LogCaptureFixture):
     """Exceptions are formatted and emitted in log."""
     with caplog.at_level(logging.CRITICAL):
@@ -49,7 +80,7 @@ def test_exception_logger_logs_trimmed_traceback(
 
     # Run the nested code to create a traceback
     try:
-        exec(code, {"deep_raise": deep_raise})
+        exec(code, {"deep_raise": deep_raise})  # noqa: S102
     except RuntimeError as exc:
         tb = exc.__traceback__
 
