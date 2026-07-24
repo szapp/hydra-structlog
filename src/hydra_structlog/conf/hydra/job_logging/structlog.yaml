@@ -107,6 +107,6 @@ handlers:
 
 root:
   level: INFO
-  handlers: [console, file, json]
+  handlers: ${hydra-structlog.dev:[console, file, json],[file, json]}
 
 disable_existing_loggers: false
