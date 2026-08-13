@@ -22,7 +22,7 @@ def func() -> None:
     name="default",
 )
 def my_app(input_1: FutureDate) -> None:
-    logger.info("Hello %s!", input_1)
+    logger.info("Hello %s! With ümlaut!", input_1, extra={"_event": "my_event"})
     func()
 
 

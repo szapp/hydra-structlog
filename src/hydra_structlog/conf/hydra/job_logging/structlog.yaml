@@ -66,6 +66,7 @@ formatters:
         _target_: hydra_structlog.processors.KeyRenamer
         level: status
         event: message
+        _event: event
       format_exc_info:
         _target_: structlog.processors.format_exc_info
         _partial_: true
@@ -81,6 +82,7 @@ formatters:
         drop_missing: true
       json_renderer:
         _target_: structlog.processors.JSONRenderer
+        ensure_ascii: false
 handlers:
   console:
     class: hydra_structlog.handlers.TqdmStreamHandler
