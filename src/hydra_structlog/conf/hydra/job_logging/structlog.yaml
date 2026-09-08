@@ -58,6 +58,7 @@ formatters:
               - func_name
         additional_ignores:
           - warnings
+          - _py_warnings
           - hydra_structlog
       time_stamper:
         _target_: structlog.processors.TimeStamper
@@ -67,6 +68,8 @@ formatters:
         level: status
         event: message
         _event: event
+        _warn_lineno: lineno
+        _warn_func_name: func_name
       format_exc_info:
         _target_: structlog.processors.format_exc_info
         _partial_: true

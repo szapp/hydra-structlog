@@ -14,19 +14,19 @@ _excepthook = None
 _configured_once = False
 
 
-def _module_from_filename(filename: str) -> str | None:
+def _module_from_filename(filename: str) -> tuple[str | None, str | None]:
     """Obtain the module name from filename through call stack."""
     frame = sys._getframe(1)
     while frame is not None:
         if frame.f_code.co_filename == filename:
-            return frame.f_globals.get("__name__")
+            return frame.f_globals.get("__name__"), frame.f_code.co_name
         frame = frame.f_back
 
     # Fallback: Module from sys.modules
     for name, mod in list(sys.modules.items()):
         if getattr(mod, "__file__", None) == filename:
-            return name
-    return None
+            return name, None
+    return None, None
 
 
 def warning_logger(
@@ -38,10 +38,14 @@ def warning_logger(
     line: str | None = None,
 ) -> None:
     """Emit Python-native warnings as logging warnings."""
-    module = _module_from_filename(filename)
+    module, func_name = _module_from_filename(filename)
     logger = logging.getLogger(module)
     if not logger.isEnabledFor(logging.WARNING):
         return  # pragma: no cover
+    extra = {
+        "_warn_func_name": func_name,
+        "_warn_lineno": lineno,
+    }
     record = logger.makeRecord(
         logger.name,
         logging.WARNING,
@@ -50,6 +54,8 @@ def warning_logger(
         "%s: %s (line %d)",
         (category.__name__, message, lineno),
         None,
+        func=func_name,
+        extra=extra if func_name else None,
     )
     logger.handle(record)
 
