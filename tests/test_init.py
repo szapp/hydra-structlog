@@ -52,7 +52,7 @@ def test_exception_logger_logs_exception(caplog: pytest.LogCaptureFixture):
     with caplog.at_level(logging.CRITICAL):
         exception_logger(Exception, Exception("test"), None)
 
-    assert caplog.record_tuples == [("exception", logging.CRITICAL, "test")]
+    assert caplog.record_tuples == [("exception", logging.CRITICAL, "Exception: test")]
 
 
 @pytest.mark.parametrize(

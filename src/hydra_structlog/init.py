@@ -92,7 +92,7 @@ def exception_logger(
 
     message = getattr(exc_value, "message", str(exc_value))
     exc_info = exc_type, exc_value, exc_traceback
-    logger.critical(message, exc_info=exc_info)
+    logger.critical("%s: %s", exc_type.__name__, message, exc_info=exc_info)
 
 
 def init_plugin(
