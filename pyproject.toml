@@ -62,6 +62,9 @@ default-groups = [
     "tests",
 ]
 
+[project.entry-points."hydra.plugins"]
+hydra_structlog = "hydra_structlog.plugin.HydraStructlogSearchPathPlugin"
+
 [build-system]
 requires = ["uv_build>=0.13.0,<0.14.0"]
 build-backend = "uv_build"
