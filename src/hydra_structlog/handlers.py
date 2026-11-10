@@ -2,7 +2,7 @@ import logging
 from typing import Any, TextIO
 
 try:  # pragma: no cover
-    from tqdm.std import tqdm as std_tqdm  # type: ignore[ty:unresolved-import]
+    from tqdm.std import tqdm as std_tqdm  # type: ignore[ty:import-not-found]
 
     TqdmClass = type[std_tqdm]
 except ImportError:  # pragma: no cover
