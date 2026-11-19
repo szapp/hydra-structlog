@@ -4,7 +4,7 @@ PYPROJECT = nox.project.load_toml("pyproject.toml")
 PYTHON_VERSIONS = nox.project.python_versions(PYPROJECT)
 
 
-@nox.session(python=PYTHON_VERSIONS)
+@nox.session(python=PYTHON_VERSIONS, allow_parallel=True)
 def tests(session):
     session.install(".", "--group", "tests")
     session.run("pytest", "--no-cov")

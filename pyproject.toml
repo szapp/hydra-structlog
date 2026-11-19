@@ -60,6 +60,7 @@ default-groups = [
     "dev",
     "tests",
 ]
+exclude-newer = "3 days"
 
 [project.entry-points."hydra.plugins"]
 hydra_structlog = "hydra_structlog.plugin.HydraStructlogSearchPathPlugin"
