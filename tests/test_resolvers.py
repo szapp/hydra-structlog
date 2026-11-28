@@ -1,4 +1,5 @@
 import pytest
+from omegaconf import DictConfig
 
 from hydra_structlog.resolvers import dev_switch
 
@@ -15,7 +16,7 @@ def test_dev_switch_resolves_from_os_env(
 ):
     """The environment variable ENV is correctly recognized for the switch."""
     monkeypatch.setenv("ENV", env)
-    actual = dev_switch(1, 0, _root_={})
+    actual = dev_switch(1, 0, _root_=DictConfig({}))
     assert actual == expected
 
 
@@ -29,7 +30,7 @@ def test_dev_switch_resolves_from_os_env(
 def test_dev_switch_resolves_from_env_set(env: str, expected: int):
     """The config-environment variable is correctly recognized for the switch."""
     cfg = {"hydra": {"job": {"env_set": {"ENV": env}}}}
-    actual = dev_switch(1, 0, _root_=cfg)
+    actual = dev_switch(1, 0, _root_=DictConfig(cfg))
     assert actual == expected
 
 
@@ -46,5 +47,5 @@ def test_dev_switch_prefers_env_var(
     """The environment config take precedence."""
     monkeypatch.setenv("ENV", env_var)
     cfg = {"hydra": {"job": {"env_set": {"ENV": env_cfg}}}}
-    actual = dev_switch(1, 0, _root_=cfg)
+    actual = dev_switch(1, 0, _root_=DictConfig(cfg))
     assert actual == expected

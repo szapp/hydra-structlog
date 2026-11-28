@@ -13,7 +13,15 @@ class HydraStructlogSearchPathPlugin(SearchPathPlugin):
             # The deprecation was not followed through but reverted in later versions
             warnings.filterwarnings("error", r".*register_resolver\(\) is deprecated")
             try:
-                OmegaConf.register_resolver("hydra-structlog.dev", dev_switch)
-            except UserWarning:
-                OmegaConf.register_new_resolver("hydra-structlog.dev", dev_switch)
+                # Function signature has changed as well
+                OmegaConf.register_resolver(
+                    "hydra-structlog.dev",
+                    dev_switch,
+                    replace=True,  # ty: ignore[unknown-argument]
+                    annotation_validation="error",  # ty: ignore[unknown-argument]
+                )
+            except (UserWarning, TypeError):
+                OmegaConf.register_new_resolver(
+                    "hydra-structlog.dev", dev_switch, replace=True
+                )
         search_path.append("hydra-structlog", "pkg://hydra_structlog.conf")
